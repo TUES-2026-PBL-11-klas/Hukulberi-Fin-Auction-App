@@ -1,6 +1,5 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { createUserTable } from './models/userModel';
 import authRoutes from './routes/authRoutes';
 
 dotenv.config();
@@ -17,7 +16,6 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 
 const startServer = async () => {
-    await createUserTable();
     app.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);
     });
