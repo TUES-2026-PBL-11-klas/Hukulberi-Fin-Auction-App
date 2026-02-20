@@ -28,8 +28,16 @@ services:
       - /app/node_modules
     command: npm run dev
 
-  # Frontend ще бъде добавен от Абед
-  # frontend:
-  #   build: ./frontend
-  #   ports:
-  #     - "5173:5173"
+  frontend:
+    build: ./frontend
+    container_name: bidmaster-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3000/api
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev
