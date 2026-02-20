@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     
     email VARCHAR(100) NOT NULL UNIQUE,
    
-    password_hash VARCHAR(60) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     
     role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
     
@@ -19,5 +19,4 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_banned ON users(banned) WHERE banned = true;
-
 CREATE INDEX idx_users_role ON users(role) WHERE role = 'admin';
