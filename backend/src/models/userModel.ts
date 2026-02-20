@@ -8,25 +8,6 @@ export interface User {
   role: 'user' | 'admin';
 }
 
-export const createUserTable = async () => {
-    const text = `
-    CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        username VARCHAR(50) UNIQUE NOT NULL,
-        email VARCHAR(100) UNIQUE NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
-        role VARCHAR(20) DEFAULT 'user',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    `;
-    try {
-        await query(text);
-        console.log('Users table created/verified');
-    } catch (err) {
-        console.error('Error creating users table:', err);
-    }
-};
-
 export const getUserByEmail = async (email: string): Promise<User | null> => {
     const result = await query('SELECT * FROM users WHERE email = $1', [email]);
     if (result.rows.length > 0) {
