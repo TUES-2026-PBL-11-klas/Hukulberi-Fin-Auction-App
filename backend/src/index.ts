@@ -1,7 +1,9 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import { createAuctionTable } from './models/auctionModel';
 import { runMigrations } from './migrate';
 import authRoutes from './routes/authRoutes';
+import adminRoutes from './routes/adminRoutes';
 
 dotenv.config();
 
@@ -15,8 +17,10 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 const startServer = async () => {
+    await createAuctionTable();
     await runMigrations();
     app.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);
