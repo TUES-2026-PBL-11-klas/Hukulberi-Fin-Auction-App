@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { query } from '../db';
-import { deleteAuctionById } from '../models/auctionModel';
 
 export const deleteAuction = async (req: Request, res: Response) => {
   try {
@@ -10,8 +9,9 @@ export const deleteAuction = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Auction ID is required' });
     }
 
-    const success = await deleteAuctionById(parseInt(id));
-
+    const text = 'DELETE FROM auctions WHERE id = $1 RETURNING id';
+    const result = await query(text, [parseInt(id)]);
+    const success = result.rows.length > 0;
     if (!success) {
       return res.status(404).json({ error: 'Auction not found' });
     }
