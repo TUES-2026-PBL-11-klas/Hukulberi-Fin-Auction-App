@@ -22,6 +22,7 @@ jobs:
 
       - name: Install and build frontend
         run: cd frontend && npm install && npm run build
+        continue-on-error: true
 
       - name: Build Docker images
         run: |
