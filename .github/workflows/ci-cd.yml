@@ -1,0 +1,38 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop, feature/*]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install and build backend
+        run: cd backend && npm install && npm run build
+
+      - name: Install and build frontend
+        run: cd frontend && npm install && npm run build
+
+      - name: Build Docker images
+        run: |
+          docker build -t bidmaster-backend:latest ./backend
+          docker build -t bidmaster-frontend:latest ./frontend
+
+      - name: Push to Docker Hub
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          docker tag bidmaster-backend:latest ${{ secrets.DOCKER_USERNAME }}/bidmaster-backend:latest
+          docker tag bidmaster-frontend:latest ${{ secrets.DOCKER_USERNAME }}/bidmaster-frontend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/bidmaster-backend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/bidmaster-frontend:latest
