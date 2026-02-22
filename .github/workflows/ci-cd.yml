@@ -2,10 +2,12 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop, feature/*]
+    branches: [main, develop]
+  pull_request:
+    branches: [develop, main]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,11 +19,32 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install and build backend
-        run: cd backend && npm install && npm run build
+      - name: Install backend dependencies
+        run: cd backend && npm install
 
-      - name: Install and build frontend
-        run: cd frontend && npm install && npm run build
+      - name: Build backend
+        run: cd backend && npm run build
+
+      - name: Run backend security audit
+        run: cd backend && npm audit --audit-level=moderate || true
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm install
+
+      - name: Build frontend
+        run: cd frontend && npm run build
+
+      - name: Run frontend security audit
+        run: cd frontend && npm audit --audit-level=moderate || true
+
+  docker:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Build Docker images
         run: |
@@ -29,7 +52,6 @@ jobs:
           docker build -t bidmaster-frontend:latest ./frontend
 
       - name: Push to Docker Hub
-        if: github.ref == 'refs/heads/develop'
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
           docker tag bidmaster-backend:latest ${{ secrets.DOCKER_USERNAME }}/bidmaster-backend:latest
