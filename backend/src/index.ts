@@ -1,14 +1,17 @@
 import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 //import { runMigrations } from './migrate';
 import authRoutes from './routes/authRoutes';
 import adminRoutes from './routes/adminRoutes';
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {

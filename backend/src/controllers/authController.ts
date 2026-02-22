@@ -53,12 +53,15 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     const newUser = await createUser(username, email, hashedPassword);
 
-    res.status(201).json({ 
-      message: 'User registered successfully', 
-      user: { id: newUser.id, username: newUser.username, email: newUser.email }
-    });
-  } catch (err) {
-    console.error(err);
+    const token = jwt.sign(
+      { id: newUser.id, email: newUser.email, role: newUser.role },
+      SECRET_KEY,
+      { expiresIn: '1h' }
+    );
+
+    res.status(201).json({ token });
+  } catch (err: any) {
+    console.error('Register error:', err.message, err.response?.data || err);
     res.status(500).json({ error: 'Server error during registration' });
   }
 };
@@ -90,13 +93,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       { expiresIn: '1h' }
     );
 
-    res.json({ 
-      message: 'Login successful', 
-      token,
-      user: { id: user.id, username: user.username, email: user.email, role: user.role }
-    });
-  } catch (err) {
-    console.error(err);
+    res.json({ token });
+  } catch (err: any) {
+    console.error('Login error:', err.message, err.response?.data || err);
     res.status(500).json({ error: 'Server error during login' });
   }
 };

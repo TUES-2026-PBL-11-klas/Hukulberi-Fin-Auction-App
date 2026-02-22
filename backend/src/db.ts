@@ -1,12 +1,6 @@
-import { Pool, QueryResultRow } from 'pg';
-import dotenv from 'dotenv';
+// Database connection is now handled via Supabase REST API in userModel.ts
+// This file is kept for backwards compatibility but not actively used
 
-dotenv.config();
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
-
-export const query = <T extends QueryResultRow = any>(text: string, params?: any[]) => pool.query<T>(text, params);
-
-export const getClient = () => pool.connect();
+export const query = async () => {
+  throw new Error('Direct queries deprecated - use userModel.ts instead');
+};
