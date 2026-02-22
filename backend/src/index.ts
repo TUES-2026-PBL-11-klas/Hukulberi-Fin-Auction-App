@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { runMigrations } from './migrate';
+//import { runMigrations } from './migrate';
 import authRoutes from './routes/authRoutes';
 import adminRoutes from './routes/adminRoutes';
 
@@ -19,7 +19,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 
 const startServer = async () => {
-    await runMigrations();
+    //await runMigrations();
     app.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);
     });
