@@ -1,3 +1,4 @@
+/*
 import fs from 'fs';
 import path from 'path';
 import { query } from './db';
@@ -35,3 +36,4 @@ export const runMigrations = async () => {
     }
   }
 };
+*/

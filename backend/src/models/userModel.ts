@@ -1,4 +1,4 @@
-import { query } from '../db';
+import axios from 'axios';
 
 export interface User {
   id: number;
@@ -8,16 +8,50 @@ export interface User {
   role: 'user' | 'admin';
 }
 
+// Lazy getter — reads env vars at call time (after dotenv loaded in index.ts)
+const getSupabase = () => {
+  const url = process.env.SUPABASE_URL || '';
+  const key = process.env.SUPABASE_ANON_KEY || '';
+  return axios.create({
+    baseURL: `${url}/rest/v1`,
+    headers: {
+      apikey: key,
+      'Content-Type': 'application/json',
+    },
+  });
+};
+
 export const getUserByEmail = async (email: string): Promise<User | null> => {
-    const result = await query('SELECT * FROM users WHERE email = $1', [email]);
-    if (result.rows.length > 0) {
-        return result.rows[0];
+  try {
+    const supabase = getSupabase();
+    const encodedEmail = encodeURIComponent(email);
+    const response = await supabase.get(`/users?email=eq.${encodedEmail}`);
+    const data = response.data as any[];
+    if (data && data.length > 0) {
+      return data[0];
     }
     return null;
+  } catch (err: any) {
+    console.error('getUserByEmail error:', err.message, err.response?.data);
+    return null;
+  }
 };
 
 export const createUser = async (username: string, email: string, passwordHash: string): Promise<User> => {
-    const text = 'INSERT INTO users(username, email, password_hash) VALUES($1, $2, $3) RETURNING *';
-    const result = await query(text, [username, email, passwordHash]);
-    return result.rows[0];
+  try {
+    const supabase = getSupabase();
+    const response = await supabase.post('/users', {
+      username,
+      email,
+      password_hash: passwordHash,
+      role: 'user',
+    }, {
+      headers: { Prefer: 'return=representation' },
+    });
+    const data = response.data as any;
+    return Array.isArray(data) ? data[0] : data;
+  } catch (err: any) {
+    console.error('createUser error:', err.message, err.response?.data);
+    throw err;
+  }
 };
