@@ -123,7 +123,7 @@ export const getBidHistory = async (req: Request, res: Response): Promise<void> 
   try {
     const { id: auctionId } = req.params;
 
-    if (!auctionId) {
+    if (!auctionId || Array.isArray(auctionId)) {
       res.status(400).json({ error: 'auction_id is required' });
       return;
     }
@@ -139,7 +139,7 @@ export const getBidHistory = async (req: Request, res: Response): Promise<void> 
     }
 
     // Get all bids with user info
-    const bids = await getBidsForAuctionWithUserInfo(parseInt(auctionId));
+    const bids: any[] = await getBidsForAuctionWithUserInfo(parseInt(auctionId));
 
     res.json({
       auction_id: parseInt(auctionId),
@@ -165,7 +165,7 @@ export const getHighestBidHandler = async (req: Request, res: Response): Promise
   try {
     const { id: auctionId } = req.params;
 
-    if (!auctionId) {
+    if (!auctionId || Array.isArray(auctionId)) {
       res.status(400).json({ error: 'auction_id is required' });
       return;
     }

@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import AdminDashboard from './AdminDashboard';
 import AdminAuctionsList from './AdminAuctionsList';
 
+interface AdminPanelPageProps {
+  token: string;
+}
+
 // Пример App.tsx интеграция
-const AdminPanelPage: React.FC = () => {
+const AdminPanelPage: React.FC<AdminPanelPageProps> = ({ token }) => {
   const [activeTab, setActiveTab] = useState<'users' | 'auctions'>('users');
-  
-  // Трябва да получиш токена от Auth Context или localStorage
-  const token = localStorage.getItem('authToken') || '';
 
   if (!token) {
     return <div>Please login as admin first</div>;
