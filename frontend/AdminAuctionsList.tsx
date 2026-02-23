@@ -27,7 +27,7 @@ const AdminAuctionsList: React.FC<{ token: string }> = ({ token }) => {
   const fetchAuctions = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/admin/auctions', {
+      const response = await fetch('/api/admin/auctions', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -51,7 +51,7 @@ const AdminAuctionsList: React.FC<{ token: string }> = ({ token }) => {
 
   const handleDeleteAuction = async (auctionId: number) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/admin/auctions/${auctionId}`, {
+      const response = await fetch(`/api/admin/auctions/${auctionId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

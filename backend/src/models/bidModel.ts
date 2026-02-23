@@ -62,13 +62,13 @@ export const getBidsByAuction = async (auctionId: number): Promise<Bid[]> => {
   }
 };
 
-export const getBidsForAuctionWithUserInfo = async (auctionId: number) => {
+export const getBidsForAuctionWithUserInfo = async (auctionId: number): Promise<any[]> => {
   try {
     const supabase = getSupabase();
     const response = await supabase.get(
       `/bids?auction_id=eq.${auctionId}&select=*,users(id,username)&order=created_at.desc`
     );
-    return response.data;
+    return response.data as any[];
   } catch (err: any) {
     console.error('getBidsForAuctionWithUserInfo error:', err.message, err.response?.data);
     return [];

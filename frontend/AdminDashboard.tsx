@@ -22,7 +22,7 @@ const AdminDashboard: React.FC<{ token: string }> = ({ token }) => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/admin/users', {
+      const response = await fetch('/api/admin/users', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -46,7 +46,7 @@ const AdminDashboard: React.FC<{ token: string }> = ({ token }) => {
 
   const handleBanUser = async (userId: number, currentStatus: boolean) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/admin/users/${userId}/ban`, {
+      const response = await fetch(`/api/admin/users/${userId}/ban`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
