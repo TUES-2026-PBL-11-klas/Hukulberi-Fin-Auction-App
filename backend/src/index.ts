@@ -6,6 +6,7 @@ import path from 'path';
 import authRoutes from './routes/authRoutes';
 import adminRoutes from './routes/adminRoutes';
 import bidRoutes from './routes/bidRoutes';
+import auctionRoutes from './routes/auctionRoutes';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
@@ -22,6 +23,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/bids', bidRoutes);
+app.use('/api/auctions', auctionRoutes);
 
 const startServer = async () => {
     //await runMigrations();
