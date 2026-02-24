@@ -27,6 +27,7 @@ export const placeBid = async (req: Request, res: Response): Promise<void> => {
   try {
     const { auction_id, amount } = req.body;
     const userId = req.user?.id;
+    const bidAmount = Number(amount);
 
     // Validate input
     if (!auction_id || !amount) {
@@ -34,7 +35,7 @@ export const placeBid = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    if (typeof amount !== 'number' || amount <= 0) {
+    if (!Number.isFinite(bidAmount) || bidAmount <= 0) {
       res.status(400).json({ error: 'amount must be a positive number' });
       return;
     }
@@ -73,10 +74,12 @@ export const placeBid = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Check bid amount is greater than current price
-    if (amount <= auction.current_price) {
+    const minAllowedBid = Number(auction.current_price) + Number(auction.min_increment || 0);
+    if (bidAmount < minAllowedBid) {
       res.status(400).json({
-        error: `Bid amount must be greater than current price (${auction.current_price})`,
+        error: `Bid amount must be at least ${minAllowedBid}`,
         currentPrice: auction.current_price,
+        minIncrement: auction.min_increment || 0,
       });
       return;
     }
@@ -88,12 +91,12 @@ export const placeBid = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Create the bid
-    const newBid = await createBid(auction_id, userId, amount);
+    const newBid = await createBid(auction_id, userId, bidAmount);
 
     // Update auction current_price
     try {
       await supabase.patch(`/auctions?id=eq.${auction_id}`, {
-        current_price: amount,
+        current_price: bidAmount,
       });
     } catch (err) {
       console.error('Error updating auction price:', err);
@@ -105,7 +108,7 @@ export const placeBid = async (req: Request, res: Response): Promise<void> => {
       bid: {
         id: newBid.id,
         auction_id: newBid.auction_id,
-        user_id: newBid.user_id,
+        user_id: (newBid as any).bidder_id,
         amount: newBid.amount,
         created_at: newBid.created_at,
       },
@@ -146,8 +149,8 @@ export const getBidHistory = async (req: Request, res: Response): Promise<void> 
       bids_count: bids.length,
       bids: bids.map((bid: any) => ({
         id: bid.id,
-        user_id: bid.user_id,
-        username: bid.users?.username || 'Unknown',
+        user_id: bid.bidder_id ?? bid.user_id,
+        username: bid.username || 'Unknown',
         amount: bid.amount,
         created_at: bid.created_at,
       })),
@@ -195,7 +198,7 @@ export const getHighestBidHandler = async (req: Request, res: Response): Promise
       auction_id: parseInt(auctionId),
       highest_bid: {
         id: highestBid.id,
-        user_id: highestBid.user_id,
+        user_id: (highestBid as any).bidder_id,
         amount: highestBid.amount,
         created_at: highestBid.created_at,
       },
