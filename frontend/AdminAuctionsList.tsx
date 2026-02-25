@@ -23,11 +23,12 @@ const AdminAuctionsList: React.FC<{ token: string }> = ({ token }) => {
   useEffect(() => {
     fetchAuctions();
   }, []);
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   const fetchAuctions = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/auctions', {
+      const response = await fetch(`${API_URL}/api/admin/auctions`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -51,7 +52,7 @@ const AdminAuctionsList: React.FC<{ token: string }> = ({ token }) => {
 
   const handleDeleteAuction = async (auctionId: number) => {
     try {
-      const response = await fetch(`/api/admin/auctions/${auctionId}`, {
+      const response = await fetch(`${API_URL}/api/admin/auctions/${auctionId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
