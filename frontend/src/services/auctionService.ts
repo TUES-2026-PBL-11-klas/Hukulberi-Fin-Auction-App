@@ -27,3 +27,21 @@ export const getAuctionById = async (id: number): Promise<Auction> => {
   const res = await axios.get(`${API_URL}/api/auctions/${id}`);
   return res.data;
 };
+
+export interface CreateAuctionData {
+  title: string;
+  description: string;
+  start_price: number;
+  min_increment: number;
+  end_time: string; 
+}
+
+export const createAuction = async (
+  data: CreateAuctionData,
+  token: string,
+): Promise<Auction> => {
+  const res = await axios.post(`${API_URL}/api/auctions`, data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
