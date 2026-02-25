@@ -84,6 +84,9 @@ const Home: React.FC = () => {
             {user ? (
               <>
                 <span className="navbar-user">{user.email}</span>
+                <button className="btn-nav" onClick={() => navigate('/create-auction')}>
+                  + Create Auction
+                </button>
                 <button className="btn-nav" onClick={handleLogout}>
                   Sign Out
                 </button>
