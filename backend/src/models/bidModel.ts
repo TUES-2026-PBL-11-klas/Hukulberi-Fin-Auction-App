@@ -3,7 +3,7 @@ import axios from 'axios';
 export interface Bid {
   id: number;
   auction_id: number;
-  user_id: number;
+  bidder_id: number;
   amount: number;
   created_at: string;
 }
@@ -26,7 +26,7 @@ export const createBid = async (auctionId: number, userId: number, amount: numbe
     const supabase = getSupabase();
     const response = await supabase.post('/bids', {
       auction_id: auctionId,
-      user_id: userId,
+      bidder_id: userId,
       amount,
     }, {
       headers: { Prefer: 'return=representation' },
@@ -65,10 +65,27 @@ export const getBidsByAuction = async (auctionId: number): Promise<Bid[]> => {
 export const getBidsForAuctionWithUserInfo = async (auctionId: number): Promise<any[]> => {
   try {
     const supabase = getSupabase();
-    const response = await supabase.get(
-      `/bids?auction_id=eq.${auctionId}&select=*,users(id,username)&order=created_at.desc`
-    );
-    return response.data as any[];
+    const response = await supabase.get(`/bids?auction_id=eq.${auctionId}&order=created_at.desc`);
+    const bids = response.data as any[];
+
+    if (!bids || bids.length === 0) {
+      return [];
+    }
+
+    const bidderIds = [...new Set(bids.map((bid) => bid.bidder_id).filter(Boolean))];
+
+    if (bidderIds.length === 0) {
+      return bids;
+    }
+
+    const usersResponse = await supabase.get(`/users?id=in.(${bidderIds.join(',')})&select=id,username`);
+    const users = usersResponse.data as Array<{ id: number; username: string }>;
+    const usernameById = new Map(users.map((user) => [user.id, user.username]));
+
+    return bids.map((bid) => ({
+      ...bid,
+      username: usernameById.get(bid.bidder_id) || 'Unknown',
+    }));
   } catch (err: any) {
     console.error('getBidsForAuctionWithUserInfo error:', err.message, err.response?.data);
     return [];

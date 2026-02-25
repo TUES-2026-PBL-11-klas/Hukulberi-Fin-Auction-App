@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { createUser, getUserByEmail } from '../models/userModel';
 
-const SECRET_KEY = process.env.JWT_SECRET || 'some_key';
+const getJwtSecret = (): string => process.env.JWT_SECRET || 'dev_jwt_secret';
 
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -55,7 +55,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     const token = jwt.sign(
       { id: newUser.id, email: newUser.email, role: newUser.role },
-      SECRET_KEY,
+      getJwtSecret(),
       { expiresIn: '1h' }
     );
 
@@ -89,7 +89,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      SECRET_KEY,
+      getJwtSecret(),
       { expiresIn: '1h' }
     );
 

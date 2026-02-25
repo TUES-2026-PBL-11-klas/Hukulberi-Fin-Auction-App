@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
+const getJwtSecret = (): string => process.env.JWT_SECRET || 'dev_jwt_secret';
+
 interface DecodedToken {
   id: number;
   email: string;
@@ -27,7 +29,7 @@ export const authGuard = (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as DecodedToken;
+    const decoded = jwt.verify(token, getJwtSecret()) as DecodedToken;
     req.user = {
       id: decoded.id,
       email: decoded.email,

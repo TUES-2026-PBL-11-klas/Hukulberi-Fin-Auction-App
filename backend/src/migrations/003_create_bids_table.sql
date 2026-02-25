@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS bids (
     
     auction_id INT NOT NULL REFERENCES auctions(id) ON DELETE CASCADE,
     
-    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    bidder_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     
     amount DECIMAL(10, 2) NOT NULL,
     
@@ -11,5 +11,5 @@ CREATE TABLE IF NOT EXISTS bids (
 );
 
 CREATE INDEX IF NOT EXISTS idx_bids_auction_id ON bids(auction_id);
-CREATE INDEX IF NOT EXISTS idx_bids_user_id ON bids(user_id);
+CREATE INDEX IF NOT EXISTS idx_bids_bidder_id ON bids(bidder_id);
 CREATE INDEX IF NOT EXISTS idx_bids_auction_created ON bids(auction_id, created_at DESC);
