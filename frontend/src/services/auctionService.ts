@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export interface Auction {
   id: number;
@@ -10,15 +10,20 @@ export interface Auction {
   current_price: number;
   min_increment: number;
   end_time: string;
-  status: string;
+  status: 'ACTIVE' | 'CLOSED';
+  creator_id: number;
+  winner_id: number | null;
+  created_at: string;
+  closed_at: string | null;
 }
 
-export const getAuctions = async (): Promise<Auction[]> => {
-  const res = await axios.get(`${API}/api/auctions`);
-  return res.data?.auctions || [];
+export const getAuctions = async (status?: string): Promise<Auction[]> => {
+  const params = status ? { status } : {};
+  const res = await axios.get(`${API_URL}/api/auctions`, { params });
+  return res.data;
 };
 
 export const getAuctionById = async (id: number): Promise<Auction> => {
-  const res = await axios.get(`${API}/api/auctions/${id}`);
-  return res.data?.auction || res.data;
+  const res = await axios.get(`${API_URL}/api/auctions/${id}`);
+  return res.data;
 };
