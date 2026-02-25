@@ -18,11 +18,12 @@ const AdminDashboard: React.FC<{ token: string }> = ({ token }) => {
   useEffect(() => {
     fetchUsers();
   }, []);
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/users', {
+      const response = await fetch(`${API_URL}/api/admin/users`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -46,7 +47,7 @@ const AdminDashboard: React.FC<{ token: string }> = ({ token }) => {
 
   const handleBanUser = async (userId: number, currentStatus: boolean) => {
     try {
-      const response = await fetch(`/api/admin/users/${userId}/ban`, {
+      const response = await fetch(`${API_URL}/api/admin/users/${userId}/ban`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
