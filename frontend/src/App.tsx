@@ -41,7 +41,7 @@ function App() {
   return (
     <div className="app-container">
       {currentPage === 'login' && <LoginPage onLogin={handleLogin} />}
-      {currentPage === 'home' && token && <HomePage onLogout={handleLogout} />}
+      {currentPage === 'home' && token && <HomePage token={token} onLogout={handleLogout} />}
       {currentPage === 'admin' && token && <AdminPanelPage token={token} />}
     </div>
   )
