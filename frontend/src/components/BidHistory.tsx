@@ -20,16 +20,16 @@ export default function BidHistory({ auctionId, refresh }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch();
+    loadBids();
   }, [auctionId, refresh]);
 
-  const fetch = async () => {
+  const loadBids = async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await getBidHistory(auctionId);
       setBids(data || []);
-    } catch (err) {
+    } catch {
       setError('Failed to load bids');
     } finally {
       setLoading(false);
@@ -37,30 +37,36 @@ export default function BidHistory({ auctionId, refresh }: Props) {
   };
 
   return (
-    <div style={{ marginTop: 16 }}>
-      <h3>Bid history</h3>
-      {loading && <div>Loading...</div>}
-      {error && <div style={{ color: '#c33' }}>{error}</div>}
-      {!loading && bids.length === 0 && <div>No bids yet</div>}
+    <div className="bid-history glass">
+      <h3 className="bid-history-heading">Bid History</h3>
+
+      {loading && (
+        <div className="bid-history-empty">
+          <div className="loading-spinner" style={{ width: 28, height: 28 }} />
+        </div>
+      )}
+
+      {error && <div className="bid-msg bid-msg-error">{error}</div>}
+
+      {!loading && bids.length === 0 && (
+        <div className="bid-history-empty">No bids yet — be the first!</div>
+      )}
+
       {!loading && bids.length > 0 && (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'left', padding: 8 }}>Bidder</th>
-              <th style={{ textAlign: 'right', padding: 8 }}>Amount</th>
-              <th style={{ textAlign: 'right', padding: 8 }}>When</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bids.map((b, i) => (
-              <tr key={b.id} style={{ background: i === 0 ? '#fff8e1' : undefined }}>
-                <td style={{ padding: 8 }}>{b.username || `User ${b.user_id}`}</td>
-                <td style={{ padding: 8, textAlign: 'right' }}>${b.amount.toFixed(2)}</td>
-                <td style={{ padding: 8, textAlign: 'right' }}>{new Date(b.created_at).toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="bid-history-list">
+          {bids.map((b, i) => (
+            <div key={b.id} className={`bid-row${i === 0 ? ' bid-row-latest' : ''}`}>
+              <div className="bid-row-left">
+                <span className="bid-row-avatar">{(b.username || 'U')[0].toUpperCase()}</span>
+                <div>
+                  <div className="bid-row-name">{b.username || `User ${b.user_id}`}</div>
+                  <div className="bid-row-time">{new Date(b.created_at).toLocaleString()}</div>
+                </div>
+              </div>
+              <div className="bid-row-amount">${b.amount.toFixed(2)}</div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
