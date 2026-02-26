@@ -71,73 +71,86 @@ const AdminAuctionsList: React.FC<{ token: string }> = ({ token }) => {
     }
   };
 
-  if (loading) return <div className="admin-auctions"><p>Loading...</p></div>;
+  const shortText = (value: string | undefined, max: number) => {
+    if (!value) return '';
+    return value.length > max ? `${value.slice(0, max)}...` : value;
+  };
+
+  if (loading) return <div className="admin-auctions"><div className="admin-loader">Loading auctions…</div></div>;
 
   return (
     <div className="admin-auctions">
-      <h1>Admin Auctions Management</h1>
+      <div className="admin-section-head">
+        <h1>Auctions Management</h1>
+        <span>{auctions.length} total auctions</span>
+      </div>
 
       {error && <div className="error-message">{error}</div>}
 
-      <table className="auctions-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Title</th>
-            <th>Seller</th>
-            <th>Start Price</th>
-            <th>Current Price</th>
-            <th>Status</th>
-            <th>End Date</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {auctions.map(auction => (
-            <tr key={auction.id} className={`status-${auction.status}`}>
-              <td>{auction.id}</td>
-              <td>
-                <div className="auction-title">{auction.title.substring(0, 30)}...</div>
-                <div className="auction-description">{auction.description?.substring(0, 50)}...</div>
-              </td>
-              <td>{auction.seller_name}</td>
-              <td>${auction.start_price.toFixed(2)}</td>
-              <td className="current-price">${auction.current_price?.toFixed(2) || 'N/A'}</td>
-              <td>
-                <span className={`status-badge ${auction.status}`}>
-                  {auction.status.charAt(0).toUpperCase() + auction.status.slice(1)}
-                </span>
-              </td>
-              <td>{new Date(auction.end_date).toLocaleDateString()}</td>
-              <td>
-                {deleteConfirm === auction.id ? (
-                  <div className="confirm-delete">
-                    <button
-                      className="confirm-btn"
-                      onClick={() => handleDeleteAuction(auction.id)}
-                    >
-                      Confirm
-                    </button>
-                    <button
-                      className="cancel-btn"
-                      onClick={() => setDeleteConfirm(null)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    className="delete-btn"
-                    onClick={() => setDeleteConfirm(auction.id)}
-                  >
-                    Delete
-                  </button>
-                )}
-              </td>
+      <div className="table-shell glass">
+        <table className="auctions-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Seller</th>
+              <th>Start Price</th>
+              <th>Current Price</th>
+              <th>Status</th>
+              <th>End Date</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {auctions.map(auction => {
+              const status = String(auction.status || '').toLowerCase();
+              return (
+                <tr key={auction.id} className={`status-${status}`}>
+                  <td>{auction.id}</td>
+                  <td>
+                    <div className="auction-title">{shortText(auction.title, 30)}</div>
+                    <div className="auction-description">{shortText(auction.description, 56)}</div>
+                  </td>
+                  <td>{auction.seller_name}</td>
+                  <td>${auction.start_price.toFixed(2)}</td>
+                  <td className="current-price">${auction.current_price?.toFixed(2) || 'N/A'}</td>
+                  <td>
+                    <span className={`status-badge ${status}`}>
+                      {status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Unknown'}
+                    </span>
+                  </td>
+                  <td>{new Date(auction.end_date).toLocaleDateString()}</td>
+                  <td>
+                    {deleteConfirm === auction.id ? (
+                      <div className="confirm-delete">
+                        <button
+                          className="confirm-btn"
+                          onClick={() => handleDeleteAuction(auction.id)}
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          className="cancel-btn"
+                          onClick={() => setDeleteConfirm(null)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        className="delete-btn"
+                        onClick={() => setDeleteConfirm(auction.id)}
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
       {auctions.length === 0 && !loading && (
         <div className="empty-state">
