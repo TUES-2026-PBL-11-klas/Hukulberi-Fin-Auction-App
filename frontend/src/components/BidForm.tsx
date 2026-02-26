@@ -31,8 +31,12 @@ export default function BidForm({ auctionId, currentPrice, minIncrement, endTime
       setError('Enter a valid positive amount');
       return;
     }
+    if (val > 99_999_999.99) {
+      setError('Bid amount is too large (max $99,999,999.99)');
+      return;
+    }
     if (val < minAllowed) {
-      setError(`Minimum allowed bid is ${minAllowed.toFixed(2)}`);
+      setError(`Minimum allowed bid is $${minAllowed.toFixed(2)}`);
       return;
     }
     if (!token) {
@@ -43,7 +47,7 @@ export default function BidForm({ auctionId, currentPrice, minIncrement, endTime
     setLoading(true);
     try {
       await placeBid({ auction_id: auctionId, amount: val }, token);
-      setSuccess('Bid placed');
+      setSuccess('Bid placed successfully!');
       setBidAmount('');
       onBidPlaced && onBidPlaced();
     } catch (err: any) {
@@ -53,15 +57,38 @@ export default function BidForm({ auctionId, currentPrice, minIncrement, endTime
     }
   };
 
+  const buttonLabel = loading
+    ? 'Placing…'
+    : expired
+      ? 'Auction Ended'
+      : !token
+        ? 'Sign in to Bid'
+        : 'Place Bid';
+
   return (
-    <form onSubmit={submit} style={{ marginTop: 16 }}>
-      <div style={{ marginBottom: 8 }}>
-        <label style={{ display: 'block', marginBottom: 4 }}>Your bid (min {minAllowed.toFixed(2)})</label>
-        <input type="number" step="0.01" min={minAllowed} value={bidAmount} onChange={(e) => setBidAmount(e.target.value)} disabled={isDisabled} style={{ width: '100%', padding: 8 }} />
+    <form onSubmit={submit} className="bid-form">
+      <label className="bid-form-label">
+        Your bid <span className="bid-form-hint">(min ${minAllowed.toFixed(2)})</span>
+      </label>
+      <div className="bid-form-row">
+        <span className="bid-form-prefix">$</span>
+        <input
+          type="number"
+          step="0.01"
+          min={minAllowed}
+          max={99999999.99}
+          placeholder={minAllowed.toFixed(2)}
+          value={bidAmount}
+          onChange={(e) => setBidAmount(e.target.value)}
+          disabled={isDisabled}
+          className="input bid-form-input"
+        />
       </div>
-      {error && <div style={{ color: '#c33', marginBottom: 8 }}>{error}</div>}
-      {success && <div style={{ color: '#080', marginBottom: 8 }}>{success}</div>}
-      <button type="submit" disabled={isDisabled} style={{ padding: '8px 12px' }}>{loading ? 'Placing...' : expired ? 'Auction ended' : token ? 'Place Bid' : 'Login to bid'}</button>
+      {error && <div className="bid-msg bid-msg-error">{error}</div>}
+      {success && <div className="bid-msg bid-msg-success">{success}</div>}
+      <button type="submit" disabled={isDisabled} className="btn-primary bid-form-btn">
+        {buttonLabel}
+      </button>
     </form>
   );
 }

@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { createBid, getHighestBid, getBidsForAuctionWithUserInfo } from '../models/bidModel';
 import axios from 'axios';
 
-// Lazy getter — reads env vars at call time
 const getSupabase = () => {
   const url = process.env.SUPABASE_URL || '';
   const key = process.env.SUPABASE_ANON_KEY || '';
@@ -15,21 +14,12 @@ const getSupabase = () => {
   });
 };
 
-/**
- * POST /bids - Place a bid on an auction
- * Validates:
- * - Auction exists and is active
- * - Bid amount is greater than current price
- * - Deadline not passed
- * - User is not the auction creator
- */
 export const placeBid = async (req: Request, res: Response): Promise<void> => {
   try {
     const { auction_id, amount } = req.body;
     const userId = req.user?.id;
     const bidAmount = Number(amount);
 
-    // Validate input
     if (!auction_id || !amount) {
       res.status(400).json({ error: 'auction_id and amount are required' });
       return;
@@ -40,6 +30,11 @@ export const placeBid = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    if (bidAmount > 99_999_999.99) {
+      res.status(400).json({ error: 'Bid amount is too large (max $99,999,999.99)' });
+      return;
+    }
+
     if (!userId) {
       res.status(401).json({ error: 'User not authenticated' });
       return;
@@ -47,7 +42,6 @@ export const placeBid = async (req: Request, res: Response): Promise<void> => {
 
     const supabase = getSupabase();
 
-    // Get auction details
     const auctionResponse = await supabase.get(`/auctions?id=eq.${auction_id}`);
     const auctions = auctionResponse.data as any[];
 
@@ -58,13 +52,11 @@ export const placeBid = async (req: Request, res: Response): Promise<void> => {
 
     const auction = auctions[0];
 
-    // Check if auction is active
     if (auction.status !== 'ACTIVE') {
       res.status(400).json({ error: 'Auction is not active' });
       return;
     }
 
-    // Check deadline
     const endTime = new Date(auction.end_time);
     const now = new Date();
 
@@ -73,7 +65,6 @@ export const placeBid = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Check bid amount is greater than current price
     const minAllowedBid = Number(auction.current_price) + Number(auction.min_increment || 0);
     if (bidAmount < minAllowedBid) {
       res.status(400).json({
@@ -84,23 +75,19 @@ export const placeBid = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Check user is not the creator
     if (auction.creator_id === userId) {
       res.status(400).json({ error: 'Cannot bid on your own auction' });
       return;
     }
 
-    // Create the bid
     const newBid = await createBid(auction_id, userId, bidAmount);
 
-    // Update auction current_price
     try {
       await supabase.patch(`/auctions?id=eq.${auction_id}`, {
         current_price: bidAmount,
       });
     } catch (err) {
       console.error('Error updating auction price:', err);
-      // Continue even if update fails
     }
 
     res.status(201).json({
@@ -119,9 +106,6 @@ export const placeBid = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-/**
- * GET /bids/auction/:id/history - Get all bids for an auction
- */
 export const getBidHistory = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id: auctionId } = req.params;
@@ -131,7 +115,6 @@ export const getBidHistory = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Verify auction exists
     const supabase = getSupabase();
     const auctionResponse = await supabase.get(`/auctions?id=eq.${auctionId}`);
     const auctions = auctionResponse.data as any[];
@@ -141,7 +124,6 @@ export const getBidHistory = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Get all bids with user info
     const bids: any[] = await getBidsForAuctionWithUserInfo(parseInt(auctionId));
 
     res.json({
@@ -161,9 +143,6 @@ export const getBidHistory = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-/**
- * GET /bids/auction/:id/highest - Get the highest bid for an auction
- */
 export const getHighestBidHandler = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id: auctionId } = req.params;
@@ -173,7 +152,6 @@ export const getHighestBidHandler = async (req: Request, res: Response): Promise
       return;
     }
 
-    // Verify auction exists
     const supabase = getSupabase();
     const auctionResponse = await supabase.get(`/auctions?id=eq.${auctionId}`);
     const auctions = auctionResponse.data as any[];

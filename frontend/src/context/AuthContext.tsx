@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
   id: number;
+  username?: string;
   email: string;
   role: 'user' | 'admin';
 }
@@ -19,7 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 function decodeToken(token: string): User | null {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
-    return { id: payload.id, email: payload.email, role: payload.role };
+    return { id: payload.id, username: payload.username, email: payload.email, role: payload.role };
   } catch {
     return null;
   }
