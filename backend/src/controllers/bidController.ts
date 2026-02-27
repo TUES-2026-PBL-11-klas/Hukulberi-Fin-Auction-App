@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { createBid, getHighestBid, getBidsForAuctionWithUserInfo } from '../models/bidModel';
+import { createBid, getHighestBid, getBidsForAuctionWithUserInfo, getBidsByUser } from '../models/bidModel';
 import axios from 'axios';
 
 const getSupabase = () => {
@@ -149,6 +149,41 @@ export const getBidHistory = async (req: Request, res: Response): Promise<void> 
   } catch (err: any) {
     console.error('getBidHistory error:', err.message, err.response?.data);
     res.status(500).json({ error: 'Server error while fetching bid history' });
+  }
+};
+
+export const getMyBids = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ error: 'User not authenticated' });
+      return;
+    }
+
+    const bids = await getBidsByUser(userId);
+
+    const auctionMap = new Map<number, any>();
+    for (const bid of bids) {
+      const a = bid.auction;
+      if (!a) continue;
+      const existing = auctionMap.get(a.id);
+      if (!existing || bid.amount > existing.my_highest_bid) {
+        auctionMap.set(a.id, {
+          ...a,
+          my_highest_bid: bid.amount,
+          my_last_bid_at: existing ? existing.my_last_bid_at : bid.created_at,
+          my_bid_count: (existing?.my_bid_count || 0) + 1,
+        });
+      } else {
+        existing.my_bid_count += 1;
+      }
+    }
+
+    const auctions = Array.from(auctionMap.values());
+    res.json(auctions);
+  } catch (err: any) {
+    console.error('getMyBids error:', err.message, err.response?.data);
+    res.status(500).json({ error: 'Server error while fetching your bids' });
   }
 };
 

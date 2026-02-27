@@ -39,7 +39,7 @@ type Filter = 'active' | 'closed';
 
 
 const Home: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const navigate = useNavigate();
 
   const [auctions, setAuctions] = useState<Auction[]>([]);
@@ -48,22 +48,22 @@ const Home: React.FC = () => {
   const [filter, setFilter] = useState<Filter>('active');
   const [, setTick] = useState(0);
 
-  const fetchAuctions = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await getAuctions(filter);
       setAuctions(data);
     } catch (err: any) {
-      setError(err?.response?.data?.error || err.message || 'Failed to load auctions');
+      setError(err?.response?.data?.error || err.message || 'Failed to load data');
     } finally {
       setLoading(false);
     }
   }, [filter]);
 
   useEffect(() => {
-    fetchAuctions();
-  }, [fetchAuctions]);
+    fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 1000);
@@ -89,6 +89,9 @@ const Home: React.FC = () => {
                 </button>
                 <button className="btn-nav" onClick={() => navigate('/my-auctions')}>
                   My Auctions
+                </button>
+                <button className="btn-nav" onClick={() => navigate('/my-bids')}>
+                  My Bids
                 </button>
                 <button className="btn-nav" onClick={handleLogout}>
                   Sign Out

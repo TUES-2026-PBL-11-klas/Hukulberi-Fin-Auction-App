@@ -37,3 +37,22 @@ export const getHighestBid = async (auctionId: number) => {
   const res = await axios.get(`${API}/api/bids/auction/${auctionId}/highest`);
   return res.data?.highest_bid || null;
 };
+
+export interface MyBidAuction {
+  id: number;
+  title: string;
+  description: string;
+  current_price: number;
+  start_price: number;
+  min_increment: number;
+  end_time: string;
+  status: 'ACTIVE' | 'CLOSED';
+  my_highest_bid: number;
+  my_bid_count: number;
+  my_last_bid_at: string;
+}
+
+export const getMyBids = async (token: string): Promise<MyBidAuction[]> => {
+  const res = await axios.get(`${API}/api/bids/my`, { headers: { Authorization: `Bearer ${token}` } });
+  return res.data;
+};

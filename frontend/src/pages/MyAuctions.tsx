@@ -117,6 +117,9 @@ const MyAuctions: React.FC = () => {
                 <button className="btn-nav" onClick={() => navigate('/my-auctions')}>
                   My Auctions
                 </button>
+                <button className="btn-nav" onClick={() => navigate('/my-bids')}>
+                  My Bids
+                </button>
                 <button className="btn-nav" onClick={handleLogout}>
                   Sign Out
                 </button>
