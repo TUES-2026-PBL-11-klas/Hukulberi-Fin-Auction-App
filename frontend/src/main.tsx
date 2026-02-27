@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
+import MyAuctions from './pages/MyAuctions';
 import CreateAuction from './pages/CreateAuction';
 import AuctionDetailPage from './pages/AuctionDetailPage';
 import AdminPanelPage from '../AdminPanelPage';
@@ -49,6 +50,7 @@ const App: React.FC = () => (
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/create-auction" element={<CreateAuction />} />
+        <Route path="/my-auctions" element={<MyAuctions />} />
         <Route path="/auction/:id" element={<AuctionDetailRoute />} />
         <Route path="/admin" element={<AdminRoute />} />
         <Route path="*" element={<Navigate to="/" />} />

@@ -116,18 +116,69 @@ export const createAuction = async (req: Request, res: Response): Promise<void> 
   }
 };
 
+/**
+ * Close all auctions whose end_time has passed but status is still ACTIVE.
+ * Sets status → CLOSED, closed_at → now, and winner_id → highest bidder.
+ */
+const closeExpiredAuctions = async (): Promise<void> => {
+  try {
+    const supabase = getSupabase();
+    const now = new Date().toISOString();
+
+    // Find active auctions whose end_time has passed
+    const { data: expired } = await supabase.get(
+      `/auctions?status=eq.ACTIVE&end_time=lte.${now}&select=id`,
+    );
+
+    const expiredAuctions = expired as Array<{ id: number }>;
+    if (!expiredAuctions || expiredAuctions.length === 0) return;
+
+    for (const auction of expiredAuctions) {
+      // Find the highest bid for this auction to determine the winner
+      let winnerId: number | null = null;
+      try {
+        const { data: bids } = await supabase.get(
+          `/bids?auction_id=eq.${auction.id}&order=amount.desc&limit=1`,
+        );
+        const topBid = (bids as any[])?.[0];
+        if (topBid) {
+          winnerId = topBid.bidder_id;
+        }
+      } catch {
+        // If we can't determine the winner, still close the auction
+      }
+
+      try {
+        await supabase.patch(`/auctions?id=eq.${auction.id}`, {
+          status: 'CLOSED',
+          closed_at: now,
+          ...(winnerId !== null ? { winner_id: winnerId } : {}),
+        });
+      } catch (err: any) {
+        console.error(`Failed to close auction ${auction.id}:`, err.message);
+      }
+    }
+
+    console.log(`Closed ${expiredAuctions.length} expired auction(s)`);
+  } catch (err: any) {
+    console.error('closeExpiredAuctions error:', err.message);
+  }
+};
+
 export const getAuctions = async (req: Request, res: Response): Promise<void> => {
   try {
+    // Close any expired auctions before returning results
+    await closeExpiredAuctions();
+
     const statusParam = (req.query.status as string | undefined)?.toUpperCase();
     const supabase = getSupabase();
 
     let url: string;
 
     if (statusParam === 'CLOSED') {
-      url = '/auctions?status=eq.CLOSED&order=end_time.asc';
+      url = '/auctions?status=eq.CLOSED&order=end_time.desc';
     } else {
-      const now = new Date().toISOString();
-      url = `/auctions?status=eq.ACTIVE&end_time=gt.${now}&order=end_time.asc`;
+      url = '/auctions?status=eq.ACTIVE&order=end_time.asc';
     }
 
     const response = await supabase.get(url);
@@ -148,6 +199,9 @@ export const getAuctionById = async (req: Request, res: Response): Promise<void>
       return;
     }
 
+    // Close expired auctions so the returned status is accurate
+    await closeExpiredAuctions();
+
     const supabase = getSupabase();
     const response = await supabase.get(`/auctions?id=eq.${auctionId}`);
     const data = response.data as Auction[];
@@ -161,5 +215,24 @@ export const getAuctionById = async (req: Request, res: Response): Promise<void>
   } catch (err: any) {
     console.error('getAuctionById error:', err.message, err.response?.data);
     res.status(500).json({ error: 'Server error while fetching auction' });
+  }
+};
+
+export const getMyAuctions = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+
+    // Close expired auctions first so statuses are accurate
+    await closeExpiredAuctions();
+
+    const supabase = getSupabase();
+    const response = await supabase.get(
+      `/auctions?creator_id=eq.${userId}&order=created_at.desc`,
+    );
+
+    res.json(response.data);
+  } catch (err: any) {
+    console.error('getMyAuctions error:', err.message, err.response?.data);
+    res.status(500).json({ error: 'Server error while fetching your auctions' });
   }
 };
