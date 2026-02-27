@@ -47,7 +47,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           try {
             const freshData = await refreshUserSession(saved);
             setToken(freshData.token);
-            setUser(freshData.user);
+            setUser({
+              id: freshData.user.id,
+              username: freshData.user.username,
+              email: freshData.user.email,
+              role: freshData.user.role as 'user' | 'admin',
+              banned: freshData.user.banned,
+            });
           } catch (err) {
             console.error('Failed to refresh user data on page load:', err);
             // Keep using decoded token data if refresh fails
@@ -82,7 +88,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const data = await refreshUserSession(token);
         setToken(data.token);
-        setUser(data.user);
+        setUser({
+          id: data.user.id,
+          username: data.user.username,
+          email: data.user.email,
+          role: data.user.role as 'user' | 'admin',
+          banned: data.user.banned,
+        });
       } catch (err) {
         console.error('Auto-refresh failed:', err);
       }
@@ -98,7 +110,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const data = await refreshUserSession(token);
         setToken(data.token);
-        setUser(data.user);
+        setUser({
+          id: data.user.id,
+          username: data.user.username,
+          email: data.user.email,
+          role: data.user.role as 'user' | 'admin',
+          banned: data.user.banned,
+        });
       } catch (err) {
         console.error('Focus refresh failed:', err);
       }

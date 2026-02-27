@@ -55,5 +55,6 @@ export const createAuction = async (
     return res.data;
   } catch (error) {
     handleAuthError(error);
+    throw error;
   }
 };
