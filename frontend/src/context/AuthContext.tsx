@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { refreshUserSession } from '../services/authService';
 
 interface User {
   id: number;
@@ -13,6 +14,7 @@ interface AuthContextType {
   token: string | null;
   login: (token: string) => void;
   logout: () => void;
+  refreshSession: (token: string, user: User) => void;
   isLoading: boolean;
 }
 
@@ -33,18 +35,96 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const saved = localStorage.getItem('token');
-    if (saved) {
-      const decoded = decodeToken(saved);
-      if (decoded) {
-        setToken(saved);
-        setUser(decoded);
-      } else {
-        localStorage.removeItem('token');
+    const initializeAuth = async () => {
+      const saved = localStorage.getItem('token');
+      if (saved) {
+        const decoded = decodeToken(saved);
+        if (decoded) {
+          setToken(saved);
+          setUser(decoded);
+          
+          // Fetch fresh user data from server on page load
+          try {
+            const freshData = await refreshUserSession(saved);
+            setToken(freshData.token);
+            setUser({
+              id: freshData.user.id,
+              username: freshData.user.username,
+              email: freshData.user.email,
+              role: freshData.user.role as 'user' | 'admin',
+              banned: freshData.user.banned,
+            });
+          } catch (err) {
+            console.error('Failed to refresh user data on page load:', err);
+            // Keep using decoded token data if refresh fails
+          }
+        } else {
+          localStorage.removeItem('token');
+        }
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+
+    initializeAuth();
   }, []);
+
+  useEffect(() => {
+    // Listen for ban status change
+    const handleBanned = () => {
+      localStorage.removeItem('token');
+      setToken(null);
+      setUser(null);
+    };
+
+    window.addEventListener('auth-banned', handleBanned);
+    return () => window.removeEventListener('auth-banned', handleBanned);
+  }, []);
+
+  // Auto-refresh session every 30 seconds if logged in
+  useEffect(() => {
+    if (!token || !user) return;
+
+    const refreshInterval = setInterval(async () => {
+      try {
+        const data = await refreshUserSession(token);
+        setToken(data.token);
+        setUser({
+          id: data.user.id,
+          username: data.user.username,
+          email: data.user.email,
+          role: data.user.role as 'user' | 'admin',
+          banned: data.user.banned,
+        });
+      } catch (err) {
+        console.error('Auto-refresh failed:', err);
+      }
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(refreshInterval);
+  }, [token, user]);
+
+  // Refresh session when window regains focus
+  useEffect(() => {
+    const handleFocus = async () => {
+      if (!token || !user) return;
+      try {
+        const data = await refreshUserSession(token);
+        setToken(data.token);
+        setUser({
+          id: data.user.id,
+          username: data.user.username,
+          email: data.user.email,
+          role: data.user.role as 'user' | 'admin',
+          banned: data.user.banned,
+        });
+      } catch (err) {
+        console.error('Focus refresh failed:', err);
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [token, user]);
 
   const login = (newToken: string) => {
     localStorage.setItem('token', newToken);
@@ -58,8 +138,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
+  const refreshSessionManual = (newToken: string, userData: User) => {
+    localStorage.setItem('token', newToken);
+    setToken(newToken);
+    setUser(userData);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, refreshSession: refreshSessionManual, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

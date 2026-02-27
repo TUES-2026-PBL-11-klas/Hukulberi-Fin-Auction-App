@@ -17,6 +17,19 @@ export interface AuthResponse {
   token: string;
 }
 
+export interface UserData {
+  id: number;
+  username: string;
+  email: string;
+  role: string;
+  banned: boolean;
+}
+
+export interface RefreshResponse {
+  user: UserData;
+  token: string;
+}
+
 export const loginUser = async (data: LoginData): Promise<AuthResponse> => {
   const res = await axios.post(`${API_URL}/api/auth/login`, data);
   return res.data;
@@ -26,3 +39,11 @@ export const registerUser = async (data: RegisterData): Promise<AuthResponse> =>
   const res = await axios.post(`${API_URL}/api/auth/register`, data);
   return res.data;
 };
+
+export const refreshUserSession = async (token: string): Promise<RefreshResponse> => {
+  const res = await axios.get(`${API_URL}/api/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
+
