@@ -1,7 +1,20 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import axios from 'axios';
 
 const getJwtSecret = (): string => process.env.JWT_SECRET || 'dev_jwt_secret';
+
+const getSupabase = () => {
+  const url = process.env.SUPABASE_URL || '';
+  const key = process.env.SUPABASE_ANON_KEY || '';
+  return axios.create({
+    baseURL: `${url}/rest/v1`,
+    headers: {
+      apikey: key,
+      'Content-Type': 'application/json',
+    },
+  });
+};
 
 interface DecodedToken {
   id: number;
@@ -21,7 +34,7 @@ declare global {
   }
 }
 
-export const authGuard = (req: Request, res: Response, next: NextFunction) => {
+export const authGuard = async (req: Request, res: Response, next: NextFunction) => {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
@@ -30,6 +43,21 @@ export const authGuard = (req: Request, res: Response, next: NextFunction) => {
 
   try {
     const decoded = jwt.verify(token, getJwtSecret()) as DecodedToken;
+    
+    // Check if user is banned
+    const supabase = getSupabase();
+    try {
+      const userResponse = await supabase.get(`/users?id=eq.${decoded.id}&select=banned`);
+      const user = (userResponse.data as any[])?.[0];
+      
+      if (user?.banned) {
+        return res.status(403).json({ error: 'Your account has been banned' });
+      }
+    } catch (err) {
+      console.error('Error checking user ban status:', err);
+      // Continue anyway to not break service on DB error
+    }
+    
     req.user = {
       id: decoded.id,
       email: decoded.email,

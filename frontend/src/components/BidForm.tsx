@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { placeBid } from '../services/bidService';
 
 interface BidFormProps {
@@ -13,14 +14,34 @@ interface BidFormProps {
 }
 
 export default function BidForm({ auctionId, currentPrice, minIncrement, endTime, token, onBidPlaced, disabled, isBanned }: BidFormProps) {
+  const { refreshSession } = useAuth();
   const [bidAmount, setBidAmount] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [currentBanned, setCurrentBanned] = useState(isBanned);
+
+  useEffect(() => {
+    setCurrentBanned(isBanned);
+  }, [isBanned]);
+
+  useEffect(() => {
+    // Listen for session refresh events (if auto-refresh or manual refresh happens)
+    const handleSessionRefresh = (event: any) => {
+      const { user, token: newToken } = event.detail;
+      if (user && newToken) {
+        refreshSession(newToken, user);
+        setCurrentBanned(user.banned || false);
+      }
+    };
+
+    window.addEventListener('session-refreshed', handleSessionRefresh);
+    return () => window.removeEventListener('session-refreshed', handleSessionRefresh);
+  }, [refreshSession]);
 
   const minAllowed = Number(currentPrice) + Number(minIncrement);
   const expired = new Date(endTime) <= new Date();
-  const isDisabled = disabled || expired || loading || !token || isBanned;
+  const isDisabled = disabled || expired || loading || !token || currentBanned;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +83,7 @@ export default function BidForm({ auctionId, currentPrice, minIncrement, endTime
     ? 'Placing…'
     : expired
       ? 'Auction Ended'
-      : isBanned
+      : currentBanned
         ? 'Account Banned'
         : !token
           ? 'Sign in to Bid'
