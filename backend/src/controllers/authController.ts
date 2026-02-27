@@ -54,7 +54,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const newUser = await createUser(username, email, hashedPassword);
 
     const token = jwt.sign(
-      { id: newUser.id, username: newUser.username, email: newUser.email, role: newUser.role },
+      { id: newUser.id, username: newUser.username, email: newUser.email, role: newUser.role, banned: newUser.banned || false },
       getJwtSecret(),
       { expiresIn: '1h' }
     );
@@ -88,7 +88,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     const token = jwt.sign(
-      { id: user.id, username: user.username, email: user.email, role: user.role },
+      { id: user.id, username: user.username, email: user.email, role: user.role, banned: user.banned || false },
       getJwtSecret(),
       { expiresIn: '1h' }
     );

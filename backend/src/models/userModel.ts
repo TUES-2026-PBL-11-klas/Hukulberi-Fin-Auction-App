@@ -6,6 +6,7 @@ export interface User {
   email: string;
   password_hash: string;
   role: 'user' | 'admin';
+  banned?: boolean;
 }
 
 // Lazy getter — reads env vars at call time (after dotenv loaded in index.ts)

@@ -105,10 +105,12 @@ const AdminDashboard: React.FC<{ token: string }> = ({ token }) => {
                 <td>{new Date(user.created_at).toLocaleDateString()}</td>
                 <td>
                   <button
-                    className={`ban-btn ${user.is_banned ? 'unban' : 'ban'}`}
+                    className={`ban-btn ${user.is_banned ? 'unban' : 'ban'} ${user.role === 'admin' ? 'disabled' : ''}`}
                     onClick={() => handleBanUser(user.id, user.is_banned)}
+                    disabled={user.role === 'admin'}
+                    title={user.role === 'admin' ? 'Admin users cannot be banned' : ''}
                   >
-                    {user.is_banned ? 'Unban' : 'Ban'}
+                    {user.role === 'admin' ? 'Admin' : (user.is_banned ? 'Unban' : 'Ban')}
                   </button>
                 </td>
               </tr>

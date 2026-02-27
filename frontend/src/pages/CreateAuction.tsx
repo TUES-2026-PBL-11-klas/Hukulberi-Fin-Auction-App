@@ -166,10 +166,15 @@ const CreateAuction: React.FC = () => {
           <h1>Create Auction</h1>
           <p className="subtitle">List a new item for bidding. All fields are required.</p>
 
+          {user?.banned && (
+            <div className="form-error">Your account has been banned and cannot create auctions.</div>
+          )}
+
           {success && <div className="form-success">{success}</div>}
           {serverError && <div className="form-error">{serverError}</div>}
 
-          <form onSubmit={handleSubmit} noValidate>
+          {!user?.banned && (
+            <form onSubmit={handleSubmit} noValidate>
             <div className="form-group">
               <label>
                 Title <span className="required">*</span>
@@ -266,7 +271,8 @@ const CreateAuction: React.FC = () => {
             <button className="btn-create" type="submit" disabled={loading}>
               {loading ? 'Creating…' : 'Create Auction'}
             </button>
-          </form>
+            </form>
+          )}
         </div>
       </div>
     </div>

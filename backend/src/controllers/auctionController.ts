@@ -72,6 +72,18 @@ const collectErrors = (body: Record<string, unknown>): ValidationError[] => {
 
 export const createAuction = async (req: Request, res: Response): Promise<void> => {
   try {
+    const creatorId = req.user!.id;
+
+    // Check if user is banned
+    const supabase = getSupabase();
+    const userResponse = await supabase.get(`/users?id=eq.${creatorId}&select=banned`);
+    const userBanned = (userResponse.data as any[])?.[0]?.banned;
+    
+    if (userBanned) {
+      res.status(403).json({ error: 'Your account has been banned and cannot create auctions' });
+      return;
+    }
+
     const errors = collectErrors(req.body);
     if (errors.length > 0) {
       res.status(400).json({ error: 'Validation failed', details: errors });
@@ -79,10 +91,8 @@ export const createAuction = async (req: Request, res: Response): Promise<void> 
     }
 
     const { title, description, start_price, min_increment, end_time } = req.body;
-    const creatorId = req.user!.id;
     const startPrice = Number(start_price);
 
-    const supabase = getSupabase();
     const response = await supabase.post(
       '/auctions',
       {

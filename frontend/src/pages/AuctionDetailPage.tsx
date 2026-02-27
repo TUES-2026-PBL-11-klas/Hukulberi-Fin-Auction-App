@@ -135,6 +135,8 @@ export default function AuctionDetailPage({ auctionId, token, onBack }: Props) {
             <h3 className="bid-panel-title">Place a Bid</h3>
             {isClosed ? (
               <div className="bid-panel-closed">This auction has ended.</div>
+            ) : user?.banned ? (
+              <div className="bid-panel-closed">Your account has been banned and cannot place bids.</div>
             ) : (
               <BidForm
                 auctionId={auctionId}
@@ -143,6 +145,7 @@ export default function AuctionDetailPage({ auctionId, token, onBack }: Props) {
                 endTime={auction.end_time}
                 token={token}
                 onBidPlaced={onBidPlaced}
+                isBanned={user?.banned}
               />
             )}
           </div>
