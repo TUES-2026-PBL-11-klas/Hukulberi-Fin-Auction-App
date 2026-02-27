@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   backend:
-    build: ./backend
+    image: darkata/bidmaster-backend:latest
     container_name: bidmaster-api
     ports:
       - "3000:3000"
@@ -10,13 +10,9 @@ services:
       - .env
     environment:
       - PORT=3000
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-    command: npm run dev
 
   frontend:
-    build: ./frontend
+    image: darkata/bidmaster-frontend:latest
     container_name: bidmaster-frontend
     ports:
       - "5173:5173"
@@ -24,7 +20,3 @@ services:
       - VITE_API_URL=http://localhost:3000
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    command: npm run dev
