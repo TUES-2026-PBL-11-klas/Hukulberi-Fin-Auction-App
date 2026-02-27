@@ -38,7 +38,7 @@ function iconFor(id: number): string {
 type Filter = 'all' | 'active' | 'closed';
 
 const MyBids: React.FC = () => {
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [allBids, setAllBids] = useState<MyBidAuction[]>([]);
@@ -71,10 +71,10 @@ const MyBids: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!token && !user) {
+    if (!authLoading && !token && !user) {
       navigate('/login');
     }
-  }, [token, user, navigate]);
+  }, [authLoading, token, user, navigate]);
 
   const filtered = allBids.filter((a) => {
     if (filter === 'active') return a.status === 'ACTIVE';
