@@ -217,3 +217,22 @@ export const getAuctionById = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ error: 'Server error while fetching auction' });
   }
 };
+
+export const getMyAuctions = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+
+    // Close expired auctions first so statuses are accurate
+    await closeExpiredAuctions();
+
+    const supabase = getSupabase();
+    const response = await supabase.get(
+      `/auctions?creator_id=eq.${userId}&order=created_at.desc`,
+    );
+
+    res.json(response.data);
+  } catch (err: any) {
+    console.error('getMyAuctions error:', err.message, err.response?.data);
+    res.status(500).json({ error: 'Server error while fetching your auctions' });
+  }
+};

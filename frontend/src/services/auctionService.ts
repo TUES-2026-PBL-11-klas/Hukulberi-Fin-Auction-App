@@ -45,3 +45,10 @@ export const createAuction = async (
   });
   return res.data;
 };
+
+export const getMyAuctions = async (token: string): Promise<Auction[]> => {
+  const res = await axios.get(`${API_URL}/api/auctions/mine`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};

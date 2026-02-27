@@ -87,6 +87,9 @@ const Home: React.FC = () => {
                 <button className="btn-nav" onClick={() => navigate('/create-auction')}>
                   Create Auction
                 </button>
+                <button className="btn-nav" onClick={() => navigate('/my-auctions')}>
+                  My Auctions
+                </button>
                 <button className="btn-nav" onClick={handleLogout}>
                   Sign Out
                 </button>
