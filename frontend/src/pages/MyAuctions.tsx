@@ -42,7 +42,7 @@ type Filter = 'all' | 'active' | 'closed';
 /* ── component ─────────────────────────────────── */
 
 const MyAuctions: React.FC = () => {
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [allAuctions, setAllAuctions] = useState<Auction[]>([]);
@@ -78,10 +78,10 @@ const MyAuctions: React.FC = () => {
 
   /* redirect unauthenticated users */
   useEffect(() => {
-    if (!token && !user) {
+    if (!authLoading && !token && !user) {
       navigate('/login');
     }
-  }, [token, user, navigate]);
+  }, [authLoading, token, user, navigate]);
 
   /* derived data */
   const filtered = allAuctions.filter((a) => {
@@ -268,7 +268,7 @@ const MyAuctions: React.FC = () => {
                   {isClosed && auction.winner_id && (
                     <div className="my-auction-winner">
                       <span className="winner-icon">🏆</span>
-                      Winner: User #{auction.winner_id}
+                      Winner: {auction.winner_username || `User #${auction.winner_id}`}
                     </div>
                   )}
                   {isClosed && !auction.winner_id && (
