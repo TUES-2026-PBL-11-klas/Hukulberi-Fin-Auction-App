@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { getAuctions, Auction } from '../services/auctionService';
+import { getMyBids, MyBidAuction } from '../services/bidService';
 import './Home.css';
 
 function formatTimeLeft(endTime: string): { text: string; urgent: boolean; ended: boolean } {
@@ -35,35 +36,45 @@ function iconFor(id: number): string {
   return ICONS[id % ICONS.length];
 }
 
-type Filter = 'active' | 'closed';
+type Filter = 'active' | 'closed' | 'mybids';
 
 
 const Home: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const navigate = useNavigate();
 
   const [auctions, setAuctions] = useState<Auction[]>([]);
+  const [myBidAuctions, setMyBidAuctions] = useState<MyBidAuction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('active');
   const [, setTick] = useState(0);
 
-  const fetchAuctions = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAuctions(filter);
-      setAuctions(data);
+      if (filter === 'mybids') {
+        if (!token) {
+          setMyBidAuctions([]);
+          return;
+        }
+        const data = await getMyBids(token);
+        setMyBidAuctions(data);
+      } else {
+        const data = await getAuctions(filter);
+        setAuctions(data);
+      }
     } catch (err: any) {
-      setError(err?.response?.data?.error || err.message || 'Failed to load auctions');
+      setError(err?.response?.data?.error || err.message || 'Failed to load data');
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, token]);
 
   useEffect(() => {
-    fetchAuctions();
-  }, [fetchAuctions]);
+    fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 1000);
@@ -118,6 +129,14 @@ const Home: React.FC = () => {
         >
           Closed
         </button>
+        {user && (
+          <button
+            className={`filter-pill${filter === 'mybids' ? ' active' : ''}`}
+            onClick={() => setFilter('mybids')}
+          >
+            My Bids
+          </button>
+        )}
       </div>
 
       {error && <div className="error-banner">{error}</div>}
@@ -129,14 +148,81 @@ const Home: React.FC = () => {
         </div>
       )}
 
-      {!loading && !error && auctions.length === 0 && (
+      {!loading && !error && auctions.length === 0 && filter !== 'mybids' && (
         <div className="state-container">
           <h2>No auctions found</h2>
           <p>{filter === 'active' ? 'Check back soon for new listings!' : 'No closed auctions yet.'}</p>
         </div>
       )}
 
-      {!loading && auctions.length > 0 && (
+      {!loading && !error && filter === 'mybids' && myBidAuctions.length === 0 && (
+        <div className="state-container">
+          <h2>No bids yet</h2>
+          <p>Start bidding on auctions to see them here!</p>
+        </div>
+      )}
+
+      {!loading && filter === 'mybids' && myBidAuctions.length > 0 && (
+        <div className="auction-grid">
+          {myBidAuctions.map((a) => {
+            const timer = formatTimeLeft(a.end_time);
+            const isClosed = a.status === 'CLOSED' || timer.ended;
+            const isWinning = a.my_highest_bid >= a.current_price;
+
+            return (
+              <article key={a.id} className="auction-card">
+                <div className="auction-card-image">{iconFor(a.id)}</div>
+                <div className="auction-card-body">
+                  <h3 className="auction-card-title">{a.title}</h3>
+                  <p className="auction-card-desc">{a.description}</p>
+
+                  <div className="mybid-stats">
+                    <div className="mybid-stat">
+                      <span className="mybid-stat-label">Your Highest</span>
+                      <span className="mybid-stat-value mybid-amount">{formatCurrency(a.my_highest_bid)}</span>
+                    </div>
+                    <div className="mybid-stat">
+                      <span className="mybid-stat-label">Current Price</span>
+                      <span className="mybid-stat-value">{formatCurrency(a.current_price)}</span>
+                    </div>
+                    <div className="mybid-stat">
+                      <span className="mybid-stat-label">Your Bids</span>
+                      <span className="mybid-stat-value">{a.my_bid_count}</span>
+                    </div>
+                  </div>
+
+                  <div className="mybid-status-row">
+                    <span className={`mybid-badge ${isWinning ? 'mybid-winning' : 'mybid-outbid'}`}>
+                      {isClosed ? (isWinning ? 'Won' : 'Lost') : (isWinning ? 'Winning' : 'Outbid')}
+                    </span>
+                    <div className="auction-timer">
+                      <div
+                        className={`timer-value${timer.urgent ? ' urgent' : ''}${timer.ended ? ' ended' : ''}`}
+                      >
+                        {timer.ended ? 'Ended' : timer.text}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="auction-card-footer">
+                  {isClosed ? (
+                    <button className="btn-bid closed" disabled>
+                      Auction Closed
+                    </button>
+                  ) : (
+                    <button className="btn-bid" onClick={() => navigate(`/auction/${a.id}`)}>
+                      {isWinning ? 'View Auction' : 'Bid Higher'}
+                    </button>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+
+      {!loading && filter !== 'mybids' && auctions.length > 0 && (
         <div className="auction-grid">
           {auctions.map((auction) => {
             const timer = formatTimeLeft(auction.end_time);

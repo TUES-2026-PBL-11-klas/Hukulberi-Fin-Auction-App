@@ -91,3 +91,25 @@ export const getBidsForAuctionWithUserInfo = async (auctionId: number): Promise<
     return [];
   }
 };
+
+export const getBidsByUser = async (userId: number): Promise<any[]> => {
+  try {
+    const supabase = getSupabase();
+    const bidsRes = await supabase.get(`/bids?bidder_id=eq.${userId}&order=created_at.desc`);
+    const bids = bidsRes.data as any[];
+    if (!bids || bids.length === 0) return [];
+
+    const auctionIds = [...new Set(bids.map((b) => b.auction_id))];
+    const auctionsRes = await supabase.get(`/auctions?id=in.(${auctionIds.join(',')})&select=id,title,description,current_price,start_price,min_increment,end_time,status,creator_id`);
+    const auctions = auctionsRes.data as any[];
+    const auctionById = new Map(auctions.map((a: any) => [a.id, a]));
+
+    return bids.map((bid) => ({
+      ...bid,
+      auction: auctionById.get(bid.auction_id) || null,
+    }));
+  } catch (err: any) {
+    console.error('getBidsByUser error:', err.message, err.response?.data);
+    return [];
+  }
+};
