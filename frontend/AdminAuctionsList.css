@@ -1,0 +1,165 @@
+.admin-auctions {
+  padding: 0;
+}
+
+.admin-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  gap: 12px;
+}
+
+.admin-section-head h1 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.25rem;
+}
+
+.admin-section-head span {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.admin-loader {
+  color: var(--text-muted);
+  padding: 24px 0;
+}
+
+.error-message {
+  background: rgba(225, 112, 85, 0.12);
+  border: 1px solid rgba(225, 112, 85, 0.35);
+  color: var(--danger);
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
+.table-shell {
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.auctions-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.auctions-table thead {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.auctions-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.auctions-table td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.auctions-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.auction-title {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.auction-description {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.current-price {
+  font-weight: 600;
+  color: #8ff9f6;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.status-badge.active {
+  background: rgba(0, 206, 201, 0.18);
+  color: #8ff9f6;
+}
+
+.status-badge.closed {
+  background: rgba(162, 155, 254, 0.2);
+  color: #d2ccff;
+}
+
+.status-badge.cancelled {
+  background: rgba(225, 112, 85, 0.18);
+  color: #ffc2af;
+}
+
+.delete-btn {
+  padding: 6px 12px;
+  background: rgba(225, 112, 85, 0.14);
+  color: #ffc2af;
+  border: 1px solid rgba(225, 112, 85, 0.35);
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+}
+
+.delete-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 14px rgba(225, 112, 85, 0.26);
+}
+
+.confirm-delete {
+  display: flex;
+  gap: 8px;
+}
+
+.confirm-btn {
+  padding: 6px 8px;
+  background: rgba(225, 112, 85, 0.14);
+  color: #ffc2af;
+  border: 1px solid rgba(225, 112, 85, 0.35);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.confirm-btn:hover {
+  transform: translateY(-1px);
+}
+
+.cancel-btn {
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.cancel-btn:hover {
+  color: var(--text);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+}

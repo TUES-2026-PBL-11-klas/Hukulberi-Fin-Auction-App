@@ -1,35 +1,24 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:15-alpine
-    container_name: bidmaster-db
-    environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
-      POSTGRES_DB: ${DB_NAME:-bidmaster}
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./postgres:/var/lib/postgresql/data
-
   backend:
+    image: darkata/bidmaster-backend:latest
     build: ./backend
     container_name: bidmaster-api
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       - PORT=3000
-      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@db:5432/${DB_NAME:-bidmaster}
-    depends_on:
-      - db
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-    command: npm run dev
 
-  # Frontend ще бъде добавен от Абед
-  # frontend:
-  #   build: ./frontend
-  #   ports:
-  #     - "5173:5173"
+  frontend:
+    image: darkata/bidmaster-frontend:latest
+    build: ./frontend
+    container_name: bidmaster-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    depends_on:
+      - backend
