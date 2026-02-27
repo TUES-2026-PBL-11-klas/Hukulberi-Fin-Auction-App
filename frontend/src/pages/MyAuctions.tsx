@@ -268,7 +268,7 @@ const MyAuctions: React.FC = () => {
                   {isClosed && auction.winner_id && (
                     <div className="my-auction-winner">
                       <span className="winner-icon">🏆</span>
-                      Winner: User #{auction.winner_id}
+                      Winner: {auction.winner_username || `User #${auction.winner_id}`}
                     </div>
                   )}
                   {isClosed && !auction.winner_id && (

@@ -13,6 +13,7 @@ export interface Auction {
   status: 'ACTIVE' | 'CLOSED';
   creator_id: number;
   winner_id: number | null;
+  winner_username?: string | null;
   created_at: string;
   closed_at: string | null;
 }

@@ -230,7 +230,33 @@ export const getMyAuctions = async (req: Request, res: Response): Promise<void> 
       `/auctions?creator_id=eq.${userId}&order=created_at.desc`,
     );
 
-    res.json(response.data);
+    const auctions = response.data as Auction[];
+
+    const winnerIds = [...new Set(
+      auctions.filter((a) => a.winner_id !== null).map((a) => a.winner_id!),
+    )];
+
+    let winnerMap: Record<number, string> = {};
+    if (winnerIds.length > 0) {
+      try {
+        const ids = winnerIds.map((id) => `id.eq.${id}`).join(',');
+        const usersRes = await supabase.get(
+          `/users?or=(${ids})&select=id,username,email`,
+        );
+        const users = usersRes.data as Array<{ id: number; username?: string; email: string }>;
+        for (const u of users) {
+          winnerMap[u.id] = u.username || u.email;
+        }
+      } catch {
+      }
+    }
+
+    const enriched = auctions.map((a) => ({
+      ...a,
+      winner_username: a.winner_id ? winnerMap[a.winner_id] || null : null,
+    }));
+
+    res.json(enriched);
   } catch (err: any) {
     console.error('getMyAuctions error:', err.message, err.response?.data);
     res.status(500).json({ error: 'Server error while fetching your auctions' });
