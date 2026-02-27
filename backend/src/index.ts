@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
-//import { runMigrations } from './migrate';
 import authRoutes from './routes/authRoutes';
 import adminRoutes from './routes/adminRoutes';
 import bidRoutes from './routes/bidRoutes';
@@ -26,7 +25,6 @@ app.use('/api/bids', bidRoutes);
 app.use('/api/auctions', auctionRoutes);
 
 const startServer = async () => {
-    //await runMigrations();
     app.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);
     });
