@@ -80,6 +80,15 @@ export const placeBid = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Check if user is banned
+    const userResponse = await supabase.get(`/users?id=eq.${userId}&select=banned`);
+    const userBanned = (userResponse.data as any[])?.[0]?.banned;
+    
+    if (userBanned) {
+      res.status(403).json({ error: 'Your account has been banned and cannot place bids' });
+      return;
+    }
+
     const newBid = await createBid(auction_id, userId, bidAmount);
 
     try {

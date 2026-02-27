@@ -5,6 +5,7 @@ interface User {
   username?: string;
   email: string;
   role: 'user' | 'admin';
+  banned?: boolean;
 }
 
 interface AuthContextType {
@@ -20,7 +21,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 function decodeToken(token: string): User | null {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
-    return { id: payload.id, username: payload.username, email: payload.email, role: payload.role };
+    return { id: payload.id, username: payload.username, email: payload.email, role: payload.role, banned: payload.banned };
   } catch {
     return null;
   }

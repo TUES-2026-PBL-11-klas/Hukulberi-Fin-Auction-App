@@ -9,9 +9,10 @@ interface BidFormProps {
   token: string | null;
   onBidPlaced?: () => void;
   disabled?: boolean;
+  isBanned?: boolean;
 }
 
-export default function BidForm({ auctionId, currentPrice, minIncrement, endTime, token, onBidPlaced, disabled }: BidFormProps) {
+export default function BidForm({ auctionId, currentPrice, minIncrement, endTime, token, onBidPlaced, disabled, isBanned }: BidFormProps) {
   const [bidAmount, setBidAmount] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +20,7 @@ export default function BidForm({ auctionId, currentPrice, minIncrement, endTime
 
   const minAllowed = Number(currentPrice) + Number(minIncrement);
   const expired = new Date(endTime) <= new Date();
-  const isDisabled = disabled || expired || loading || !token;
+  const isDisabled = disabled || expired || loading || !token || isBanned;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,9 +62,11 @@ export default function BidForm({ auctionId, currentPrice, minIncrement, endTime
     ? 'Placing…'
     : expired
       ? 'Auction Ended'
-      : !token
-        ? 'Sign in to Bid'
-        : 'Place Bid';
+      : isBanned
+        ? 'Account Banned'
+        : !token
+          ? 'Sign in to Bid'
+          : 'Place Bid';
 
   return (
     <form onSubmit={submit} className="bid-form">

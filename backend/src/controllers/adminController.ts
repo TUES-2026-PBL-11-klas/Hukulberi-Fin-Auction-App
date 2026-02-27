@@ -55,6 +55,18 @@ export const banUser = async (req: Request, res: Response): Promise<void> => {
     const banStatusRaw = req.body?.banStatus;
     const banStatus = typeof banStatusRaw === 'boolean' ? banStatusRaw : true;
 
+    // Only prevent banning if trying to ban, not if unbanning
+    if (banStatus) {
+      const supabase = getSupabase();
+      const userResponse = await supabase.get(`/users?id=eq.${userId}&select=role`);
+      const targetUser = (userResponse.data as any[])?.[0];
+      
+      if (targetUser?.role === 'admin') {
+        res.status(403).json({ error: 'Admin users cannot be banned' });
+        return;
+      }
+    }
+
     const supabase = getSupabase();
     const response = await supabase.patch(
       `/users?id=eq.${userId}`,
