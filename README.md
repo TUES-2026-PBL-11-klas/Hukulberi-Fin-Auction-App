@@ -13,6 +13,7 @@ BidMaster is a full-stack web application where users can create auctions, brows
 - [Environment Variables](#environment-variables)
 - [Docker](#docker)
 - [CI/CD](#cicd)
+- [Въпроси за проверка на разбиране](#въпроси-за-проверка-на-разбиране)
 - [UML Diagrams](#uml-diagrams)
 
 ## Tech Stack
@@ -211,6 +212,51 @@ The GitHub Actions pipeline (`.github/workflows/ci-cd.yml`) runs on every push a
 
 1. **Build & Test** — Installs dependencies, builds both backend and frontend, runs security audits
 2. **Docker** — On pushes to `main` or `develop`, builds Docker images and pushes them to Docker Hub
+
+## Въпроси за проверка на разбиране
+
+### Docker / DevOps
+
+1. Защо в `docker-compose.yml` има едновременно `image` и `build` за backend и frontend, и кога кое се използва?
+2. Каква е практическата разлика между `npm install` (в Dockerfile) и `npm ci` (в CI pipeline)?
+3. Защо контейнерът за frontend има `VITE_API_URL=http://localhost:3000` и как това влияе в браузър спрямо вътрешна Docker мрежа?
+4. Какъв е рискът от `CMD ["npm", "run", "dev"]` в production и как би изглеждала по-стабилна алтернатива?
+5. Какво прави `depends_on` в compose и какво **не** гарантира относно готовността на backend-а?
+
+### SQL схема и данни
+
+1. Къде в миграциите е дефиниран enum типът за статуса на аукцион и защо е по-добре от свободен `VARCHAR`?
+2. Каква е разликата между `ON DELETE CASCADE` (например при `creator_id`) и `ON DELETE SET NULL` (при `winner_id`) и защо тук е избрано така?
+3. Защо `auctions` има едновременно `start_price` и `current_price`, вместо само едно поле?
+4. Какви проблеми може да има, ако в `bids.amount` няма `CHECK (amount > 0)` на DB ниво?
+5. Каква е ролята на индексите `idx_bids_auction_created` и `idx_auctions_end_time` за реалните заявки в приложението?
+6. Какво връща `admin_overview` и защо е реализирано като SQL view, а не само в backend код?
+
+### Backend (Express + TypeScript)
+
+1. Обясни пълния flow в `authGuard`: откъде идва token-ът, как се валидира и кога се връщат `401` срещу `403`.
+2. Защо в `authGuard` при грешка в проверката за `banned` се продължава (`continue anyway`) и какъв е компромисът?
+3. В `placeBid` кои проверки са направени преди запис на bid и в какъв ред, и защо редът има значение?
+4. Как се изчислява минимално позволеният bid (`current_price + min_increment`) и какво би станало при race condition между двама наддаващи?
+5. Къде и как се затварят изтеклите аукциони (`closeExpiredAuctions`) и как се избира winner?
+6. Каква е разликата между валидирането в `collectErrors` и ограниченията в SQL схемата – защо са нужни и двете?
+7. Дай пример за вход, който frontend може да прати, но backend да отхвърли с `400`, и обясни защо.
+
+### Frontend (React + Context + Services)
+
+1. Какво прави `decodeToken` в `AuthContext` и какъв е рискът да се ползва decoded payload преди server refresh?
+2. Защо има auto-refresh на сесията през 30 секунди и отделно refresh при `window focus`?
+3. Какво събитие изслушва `AuthContext` за бан (`auth-banned`) и какво става със state и `localStorage`?
+4. Кои заявки трябва да пращат `Authorization: Bearer <token>` и как би проверил, че това е така в `services/*`?
+5. Къде се показват грешките от backend (например `Bid amount must be at least ...`) и как стигат до потребителя?
+6. Ако токенът изтече докато потребителят е на страница за наддаване, какъв UX се очаква според текущата архитектура?
+
+### Проверка за реално разбиране (follow-up въпроси)
+
+1. Покажи конкретен ред/файл, където се задава `winner_id` при затваряне на аукцион.
+2. Покажи конкретна заявка (endpoint + payload), която ще върне `403` за баннат user.
+3. Покажи къде в кода се ограничава максимален bid до `99,999,999.99`.
+4. Обясни защо има едновременно backend проверка и DB foreign key за `bidder_id`.
 
 ## UML Diagrams
 
